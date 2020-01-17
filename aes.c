@@ -153,6 +153,86 @@ void aes_add_round_key(AES_CYPHER_T mode, uint8_t *state, uint8_t *round, int nr
 	}
 }
 
+void aes_sub_bytes(AES_CYPHER_T mode, uint8_t *state){
+	int i,j;
+
+	for (i = 0; i < g_aes_nb[mode]; i++){
+		for (j = 0; j < 4; j++){
+			state[i * 4 + j] = aes_sub_sbox(state[i * 4 + j]);
+		}
+	}
+}
+
+void aes_shift_rows(AES_CYPHER_T mode, uint8_t *state){
+	uint8_t *s = (uint8_t *)state;
+	int i, j, r;
+
+	for (i = 1; i< g_aes_nb[mode]; i++){
+		for (j = 0; j < i; j++){
+			uint8_t tmp = s[i];
+			for (r = 0; r < g_aes_nb[mode]; r++){
+				s[i + r * 4] = s[i + (r + 1) * 4];
+			}
+			s[i + (g_aes_nb[mode] - 1) * 4] = tmp;
+		}
+	}
+}
+
+uint8_t aes_xtime(uint8_t x){
+	return ((x << 1) ^ (((x >> 7) & 1) * 0x1b));
+}
+
+uint8_t aes_xtimes(uint8_t x, int ts){
+	while (ts-- > 0){
+		x = aes_xtime(x);
+	}
+	return x;
+}
+
+uint8_t aes_mul(uint8_t x, uint8_t y){
+	return ((((y >> 0) & 1) * aes_xtimes(x, 0)) ^
+		(((y >> 1) & 1) * aes_xtimes(x, 1)) ^
+		(((y >> 2) & 1) * aes_xtimes(x, 2)) ^
+		(((y >> 3) & 1) * aes_xtimes(x, 3)) ^
+		(((y >> 4) & 1) * aes_xtimes(x, 4)) ^
+		(((y >> 5) & 1) * aes_xtimes(x, 5)) ^
+		(((y >> 6) & 1) * aes_xtimes(x, 6)) ^
+		(((y >> 7) & 1) * aes_xtimes(x, 7)) );
+}
+
+void aes_mix_columns(AES_CYPHER_T mode, uint8_t *state){
+	uint8_t y[16] = { 2, 3, 1, 1,  1, 2, 3, 1,  1, 1, 2, 3,  3, 1, 1, 2 };
+	uint8_t s[4];
+	int i, j, r;
+
+	for (i = 0; i < g_aes_nb[mode]; i++){
+		for (r = 0; r < 4; r++){
+			s[r] = 0;
+			for (j = 0; j < 4; j++){
+				s[r] = s[r] ^ aes_mul(state[i * 4 + j], y[r * 4 + j]);
+			}
+		}
+		for (r = 0; r < 4; r++){
+			state[i * 4 + r] = s[r];
+		}
+	}
+}
+
+void aes_dump(char *msg, uint8_t *data, int len){
+	int i;
+
+	printf("%8.8s: ", msg);
+	for (i = 0; i < len; i++){
+		printf(" %2.2x", data[i]);
+	}
+	printf("\n");
+}
+
+int aes_encrypt(AES_CYPHER_T mode, uint8_t *data, int len, uint8_t *key){
+
+}
+
+
 int main(){ 
 
 }
