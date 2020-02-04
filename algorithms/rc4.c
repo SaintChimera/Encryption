@@ -42,11 +42,11 @@ int Pseudo_Random_Generation_Algorithm(unsigned char *S, char *plaintext, char *
 	return 0;
 }
 
-int main()
+int RC4(char *key, char *plaintext)
 {
 	unsigned char S[N];
-	char *plaintext = "different";
-	char *key = "key";
+//	char *plaintext = "different";
+//	char *key = "key";
 	size_t plaintext_len = strlen(plaintext);
 	char ciphertext[plaintext_len];
 	printf("%s\n",key);
