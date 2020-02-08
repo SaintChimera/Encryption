@@ -1,5 +1,6 @@
 CC=gcc
 MAKE=make
+TARGET=PCE
 IDIR=algorithms/
 CFLAGS=-I$(IDIR) -g -Wall
 IDIRFILES=$(IDIR)rc4.o
@@ -9,8 +10,10 @@ all:
 	$(MAKE) -C $(IDIR)
 	$(MAKE) PCE
 
-PCE: $(OBJ)
+$(TARGET): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
 	rm -r *.o 
+	rm -r $(TARGET)
+	$(MAKE) clean -C $(IDIR)
