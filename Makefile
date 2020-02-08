@@ -1,22 +1,15 @@
-TARGET = PCE
-CC = gcc
-IDIR = algorithms/ 
-CFLAGS = -I$(IDIR)
+CC=gcc
+MAKE=make
+IDIR=algorithms
+CFLAGS=-I$(IDIR) -g -Wall
+OBJ=rc4.o PCE.o
 
-.PHONY: clean all default
+all:
+	$(MAKE) -C $(IDIR)
+	$(MAKE) PCE
 
-default: $(TARGET)
-all: default
+PCE: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
-HEADERS = $(wildcard *.h)
-
-%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-.PRECIOUS: $(TARGET) $(OBJECTS)
-
-$(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $@ $^
-
-clean: 
+clean:
+	rm -r *.o 
