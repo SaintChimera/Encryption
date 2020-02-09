@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 # define N 256 // S box size
@@ -42,13 +43,28 @@ int Pseudo_Random_Generation_Algorithm(unsigned char *textbuffer, int textbuffer
 	return 0;
 }
 
-int RC4(char *key, int key_size, unsigned char *textbuffer, int textbuffer_size)
-{
-	unsigned char S[N];
-	
-	if(Key_Scheduling_Algorithm(key, key_size, S) > 0){
-		return 1;
+unsigned char *RC4_init(char *key, int key_size){
+	unsigned char *S = 0;
+	S = malloc(sizeof(unsigned char) * 256);
+	if (S == 0){
+		free(S);
+		return 0; //return null pointer
 	}
+
+	if(Key_Scheduling_Algorithm(key, key_size, S) > 0){
+		free(S);
+		return 0; //return null pointer
+	}
+	return S; //return context (in this case just the S-box)
+}
+
+int RC4_dest(unsigned char *S){
+	free(S);
+	return 0;
+}
+
+int RC4_crypt(unsigned char *S, unsigned char *textbuffer, int textbuffer_size)
+{
 	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, S) > 0){
 		return 1;
 	}

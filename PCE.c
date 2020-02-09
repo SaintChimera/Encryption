@@ -65,7 +65,14 @@ int main(int argc, char **argv){
 	strncpy(pbkey,skey,pbkey_size);
 	memcpy(pbtextbuffer,stextbuffer,pbtextbuffer_size);
 	
-	RC4(pbkey,pbkey_size,pbtextbuffer,pbtextbuffer_size); // encrypt
+	unsigned char *RC4_context = 0;	
+	if ((RC4_context = RC4_init(pbkey,pbkey_size)) == 0){
+		fprintf(stderr,"Failure to init RC4");
+	} else if (RC4_crypt(RC4_context,pbtextbuffer,pbtextbuffer_size) > 0){ // encrypt
+		fprintf(stderr,"Failure to encrypt");
+	} else if (RC4_dest(RC4_context) > 0){
+		fprintf(stderr,"Failure to destroy context");
+	}
 
 	for (int i = 0; i < pbtextbuffer_size; i++){
 		printf("%x\n",pbtextbuffer[i]);
