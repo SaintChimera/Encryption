@@ -16,7 +16,7 @@ void print_help(){
 }
 
 // returns success or failure
-int doRC4(char *skey, char *inf, char *outf){
+int doEncryption(char *skey, char *inf, char *outf, unsigned char * (*initptr)(), int (*cryptptr)(), int (*destptr)()){
 
     char readmode[] = "r";
     char writemode[] = "w";
@@ -30,15 +30,15 @@ int doRC4(char *skey, char *inf, char *outf){
     
     // open the input file, make the buffer, open the output file
     if ((fdin = fopen(inf,readmode)) == 0){
-        fprintf(stderr,"Failure to open input file");
+        fprintf(stderr,"Failure to open input file\n");
         return 1;
     } 
     if ((buf = malloc(bufsize)) == 0){
-        fprintf(stderr,"Failure to create buffer");
+        fprintf(stderr,"Failure to create buffer\n");
         return 1;
     }
     if ((fdout = fopen(outf,writemode)) == 0){
-        fprintf(stderr,"Failure to open output file");
+        fprintf(stderr,"Failure to open output file\n");
         return 1;
     }
 
@@ -48,14 +48,14 @@ int doRC4(char *skey, char *inf, char *outf){
     strncpy(pbkey,skey,pbkey_size);
 
     // init rc4
-    if ((RC4_context = RC4_init(pbkey,pbkey_size)) == 0){
+    if ((RC4_context = (*initptr)(pbkey,pbkey_size)) == 0){
         fprintf(stderr,"Failure to init RC4\n");
         return 0;
     }
 
     // fill the buffer and encrypt
     while ((data_size = fread(buf,charsize,bufsize,fdin)) > 0){
-        if (RC4_crypt(RC4_context,buf,data_size) == 0){ // encrypt
+        if ((*cryptptr)(RC4_context,buf,data_size) == 0){ // encrypt
             fprintf(stderr,"Failure to encrypt\n");
             return 0;
         }
@@ -65,7 +65,7 @@ int doRC4(char *skey, char *inf, char *outf){
         }
     }
 
-    if (RC4_dest(RC4_context) == 0){
+    if ((*destptr)(RC4_context) == 0){
         fprintf(stderr,"Failure to destroy context\n");
         return 0;
     }
@@ -129,7 +129,7 @@ int main(int argc, char **argv){
     }
 
     if (rc4flag == 1){  
-        if (doRC4(skey,inf,outf) == 0){
+        if (doEncryption(skey,inf,outf, &RC4_init, &RC4_crypt, &RC4_dest) == 0){
             fprintf(stderr,"Failed to encrypt with RC4\n");
         }
     }
