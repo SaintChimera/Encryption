@@ -24,7 +24,7 @@ int Key_Scheduling_Algorithm(char *key, int key_size, unsigned char *S) // gener
 		j = (j + S[i] + key[i%key_size]) % N;	// permute S with j(persistent), S[i], and a byte from the key. then mod N(8 bits)
 		swap(&S[i],&S[j]); // swap the character at the position represented by j, with the one represented by i
 	}
-	return 0;
+	return 1;
 }
 
 int Pseudo_Random_Generation_Algorithm(unsigned char *textbuffer, int textbuffer_size, unsigned char *S)
@@ -40,18 +40,20 @@ int Pseudo_Random_Generation_Algorithm(unsigned char *textbuffer, int textbuffer
 		rnd = S[(S[i] + S[j]) % N]; // select byte to xor against plaintext 
 		textbuffer[n] = rnd ^ textbuffer[n]; // xor
 	}
-	return 0;
+	return 1;
 }
 
 unsigned char *RC4_init(char *key, int key_size){
-	unsigned char *S = 0;
+	unsigned char *S = NULL;
 	S = malloc(sizeof(unsigned char) * 256);
-	if (S == 0){
-		free(S);
+    
+	if (S == NULL){
+        fprintf(stderr, "malloc for S box did not allocate\n");
 		return 0; //return null pointer
 	}
 
-	if(Key_Scheduling_Algorithm(key, key_size, S) > 0){
+	if(Key_Scheduling_Algorithm(key, key_size, S) == 0){
+        fprintf(stderr, "KSA failed\n");
 		free(S);
 		return 0; //return null pointer
 	}
@@ -60,13 +62,14 @@ unsigned char *RC4_init(char *key, int key_size){
 
 int RC4_dest(unsigned char *S){
 	free(S);
-	return 0;
+	return 1;
 }
 
 int RC4_crypt(unsigned char *S, unsigned char *textbuffer, int textbuffer_size)
 {
-	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, S) > 0){
-		return 1;
+	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, S) == 0){
+        fprintf(stderr, "PRGA failed\n");
+		return 0;
 	}
-	return 0;
+	return 1;
 }
