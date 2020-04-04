@@ -15,5 +15,6 @@ $(TARGET): $(OBJ)
 
 clean:
 	rm -r *.o 
+	rm -r *.txt
 	rm -r $(TARGET)
 	$(MAKE) clean -C $(IDIR)

@@ -8,6 +8,10 @@
 
 # define N 256 // S box size
 
+struct RC4_context {
+    unsigned char *S;
+};
+
 void swap(unsigned char *a, unsigned char *b){
 	int tmp = *a;
 	*a = *b;
@@ -43,31 +47,36 @@ int Pseudo_Random_Generation_Algorithm(unsigned char *textbuffer, int textbuffer
 	return 1;
 }
 
-unsigned char *RC4_init(char *key, int key_size){
-	unsigned char *S = NULL;
-	S = malloc(sizeof(unsigned char) * 256);
+void *RC4_init(char *key, int key_size){
+    struct RC4_context *context = malloc(sizeof(struct RC4_context)); // context will be a pointer to a struct of type RC4_context
+	context->S = NULL; // yes its redundant, thats okay.
+	context->S = malloc(sizeof(unsigned char) * 256);
     
-	if (S == NULL){
+	if (context->S == NULL){
         fprintf(stderr, "malloc for S box did not allocate\n");
 		return 0; //return null pointer
 	}
 
-	if(Key_Scheduling_Algorithm(key, key_size, S) == 0){
+	if(Key_Scheduling_Algorithm(key, key_size, context->S) == 0){
         fprintf(stderr, "KSA failed\n");
-		free(S);
+		free(context->S);
+        free(context);
 		return 0; //return null pointer
 	}
-	return S; //return context (in this case just the S-box)
+	return context; //return context
 }
 
-int RC4_dest(unsigned char *S){
-	free(S);
+int RC4_dest(void *context){
+    struct RC4_context *data = (struct RC4_context *)context;
+	free(data->S);
+    free(context);
 	return 1;
 }
 
-int RC4_crypt(unsigned char *S, unsigned char *textbuffer, int textbuffer_size)
+int RC4_crypt(void *context, unsigned char *textbuffer, int textbuffer_size)
 {
-	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, S) == 0){
+    struct RC4_context *data = (struct RC4_context *)context;
+	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, data->S) == 0){
         fprintf(stderr, "PRGA failed\n");
 		return 0;
 	}

@@ -16,14 +16,15 @@ void print_help(){
 }
 
 // returns success or failure
-int doEncryption(char *skey, char *inf, char *outf, unsigned char * (*initptr)(), int (*cryptptr)(), int (*destptr)()){
+int doEncryption(char *skey, char *inf, char *outf, void * (*initptr)(), int (*cryptptr)(), int (*destptr)()){
 
     char readmode[] = "r";
     char writemode[] = "w";
     FILE *fdin = NULL;
     FILE *fdout = NULL;
     unsigned char *buf = NULL;
-    unsigned char *RC4_context = NULL; 
+//    unsigned char *RC4_context = NULL; 
+    void *context = NULL; 
     int data_size;
     int bufsize = 4096;
     int charsize = sizeof(char);
@@ -48,14 +49,14 @@ int doEncryption(char *skey, char *inf, char *outf, unsigned char * (*initptr)()
     strncpy(pbkey,skey,pbkey_size);
 
     // init rc4
-    if ((RC4_context = (*initptr)(pbkey,pbkey_size)) == 0){
+    if ((context = (*initptr)(pbkey,pbkey_size)) == 0){
         fprintf(stderr,"Failure to init RC4\n");
         return 0;
     }
 
     // fill the buffer and encrypt
     while ((data_size = fread(buf,charsize,bufsize,fdin)) > 0){
-        if ((*cryptptr)(RC4_context,buf,data_size) == 0){ // encrypt
+        if ((*cryptptr)(context,buf,data_size) == 0){ // encrypt
             fprintf(stderr,"Failure to encrypt\n");
             return 0;
         }
@@ -65,7 +66,7 @@ int doEncryption(char *skey, char *inf, char *outf, unsigned char * (*initptr)()
         }
     }
 
-    if ((*destptr)(RC4_context) == 0){
+    if ((*destptr)(context) == 0){
         fprintf(stderr,"Failure to destroy context\n");
         return 0;
     }
