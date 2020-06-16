@@ -12,6 +12,8 @@ struct RC4_context {
     unsigned char *S;
 };
 
+static struct RC4_context *context; // context will be a pointer to a struct of type RC4_context
+
 void swap(unsigned char *a, unsigned char *b){
 	int tmp = *a;
 	*a = *b;
@@ -47,36 +49,39 @@ int Pseudo_Random_Generation_Algorithm(unsigned char *textbuffer, int textbuffer
 	return 1;
 }
 
-void *RC4_init(char *key, int key_size){
-    struct RC4_context *context = malloc(sizeof(struct RC4_context)); // context will be a pointer to a struct of type RC4_context
+// returns success or failure
+int RC4_init(char *key, int key_size){
+    context = malloc(sizeof(struct RC4_context)); // context will be a pointer to a struct of type RC4_context
 	context->S = NULL; // yes its redundant, thats okay.
 	context->S = malloc(sizeof(unsigned char) * 256);
     
 	if (context->S == NULL){
         fprintf(stderr, "malloc for S box did not allocate\n");
-		return 0; //return null pointer
+		return 0; //return false
 	}
 
 	if(Key_Scheduling_Algorithm(key, key_size, context->S) == 0){
         fprintf(stderr, "KSA failed\n");
 		free(context->S);
         free(context);
-		return 0; //return null pointer
+		return 0; //return false
 	}
-	return context; //return context
+	return 1; //return context
 }
 
-int RC4_dest(void *context){
-    struct RC4_context *data = (struct RC4_context *)context;
-	free(data->S);
+// returns success
+int RC4_dest(){
+    //struct RC4_context *data = (struct RC4_context *)context;
+	free(context->S);
     free(context);
 	return 1;
 }
 
-int RC4_crypt(void *context, unsigned char *textbuffer, int textbuffer_size)
+// returns success or failure
+int RC4_crypt(unsigned char *textbuffer, int textbuffer_size)
 {
-    struct RC4_context *data = (struct RC4_context *)context;
-	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, data->S) == 0){
+    //struct RC4_context *data = (struct RC4_context *)context;
+	if(Pseudo_Random_Generation_Algorithm(textbuffer, textbuffer_size, context->S) == 0){
         fprintf(stderr, "PRGA failed\n");
 		return 0;
 	}
